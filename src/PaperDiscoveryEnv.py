@@ -7,16 +7,16 @@ import PaperEmbedding as paper_embedding
 import UserModel as UserModel
 
 class PaperDiscoveryEnv(gym.Env):
-    def __init__(self, df, num_recommendations=10, user_interests=("scientometrics and bibliometrics research")):
+    def __init__(self, df, num_recommendations=10, user_interests=("scientometrics and bibliometrics research"), satisfied_at=10):
         super(PaperDiscoveryEnv, self).__init__()
         
         # Data
         self.df = df
         topic_to_index = {topic: idx for idx, topic in enumerate(sorted(set(self.df['topics.display_name'].explode().unique())))}
         self.df['topics.indices'] = self.df['topics.display_name'].apply(lambda topics: clean_data.generate_topic_indices(topics, topic_to_index))
-        self.df
+        self.satisfied_at = satisfied_at
 
-        num_topics = len( topic_to_index)
+        num_topics = len(topic_to_index)
         embedding_dim = 64                 # Each topic is represented by a 64-dimensional vector.
         topic_output_dim = 128             # Intermediate representation dimension for the topic branch.
         final_dim = 256                    # Final paper embedding dimension.
@@ -83,6 +83,6 @@ class PaperDiscoveryEnv(gym.Env):
         self.recommended_papers.update(action)
 
         next_state = self.get_state()
-        done = len(self.clicked_papers) >= self.num_recommendations
+        done = len(self.clicked_papers) >= self.satisfied_at
 
         return next_state, reward, done, False, {}
